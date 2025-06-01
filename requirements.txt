@@ -9,7 +9,7 @@ tqdm
 numpy
 pandas
 scikit-learn
-fast-api
+fastapi
 uvicorn
 pydantic
 python-dotenv
