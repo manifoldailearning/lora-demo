@@ -1,0 +1,5 @@
+#!/Users/nachikethpro/Desktop/author-repo/lora-project-demo/envs/bin/python3.11
+
+import pydoc
+if __name__ == '__main__':
+    pydoc.cli()
