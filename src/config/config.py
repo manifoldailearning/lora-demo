@@ -6,7 +6,7 @@ class LoRAConfig:
     model_name: str = "facebook/opt-350m"
     max_length: int = 512
     batch_size: int = 8
-
+    output_dir: str = "output/final_model"
     # Lora parameters
     lora_r: int = 8
     lora_alpha: int = 16

@@ -11,7 +11,15 @@ class DataProcessor:
     def load_data(self, file_path: str) -> Dataset:
         with open(file_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
-        return Dataset.from_list(data)
+            fomatted_data = {
+                "input": data["input"],
+                "output": data["output"]
+            }
+            print(data)
+            print(type(data))
+            print(fomatted_data)
+            print(type(fomatted_data))
+        return Dataset.from_dict(fomatted_data)
 
     def preprocess_function(self, dataset: Dict) -> Dict:
         texts = [f"Input: {inp}\nOutput: {out}" for inp,out in zip(dataset['input'], dataset['output']) ]
@@ -38,7 +46,7 @@ class DataProcessor:
         )
         return processed_dataset
 
-    def create_sample_data(output_file: str = "data/train.json"):
+    def create_sample_data(self,output_file: str):
         sample_data = {"input": [
                 "What is Machine Learning?",
                 "Explain the concept of Neural Networks.",
