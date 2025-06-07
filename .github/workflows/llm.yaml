@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
 
+env:
+  IMAGE_TAG: latest
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -24,8 +27,8 @@ jobs:
 
       - name: Set IMAGE_URI
         run: |
-          IMAGE_TAG=latest
-          IMAGE_URI="$ACCOUNT_ID.dkr.ecr.${AWS_REGION}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG"
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          IMAGE_URI="$ACCOUNT_ID.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
 
       - name: Build Docker image
@@ -64,17 +67,13 @@ jobs:
         run: |
           kubectl create configmap lora-config --from-env-file=.env --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Update deployment with ECR image
+      - name: Inject image URI into manifest
         run: |
-          sed -i "s|manifoldailearning/llm-lora:latest|$IMAGE_URI|g" kube-deployment.yaml
+          envsubst < kube-deployment.yaml > kube-deployment-final.yaml
 
       - name: Apply deployment
         run: |
-          kubectl apply -f kube-deployment.yaml
-
-      # - name: Apply PVC (if needed)
-      #   run: |
-      #     kubectl apply -f outputs-pvc.yaml
+          kubectl apply -f kube-deployment-final.yaml
 
       - name: Verify rollout
         run: |
