@@ -7,6 +7,6 @@ To use the fine-tuned LoRA adapters for inference:
 ```bash
 python scripts/inference.py \
     --model_path facebook/opt-350m \
-    --adapter_path outputs/final_model \
+    --adapter_path output/final_model \
     --prompt "What is machine learning?"
 ```
