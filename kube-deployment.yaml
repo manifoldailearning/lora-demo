@@ -33,15 +33,13 @@ kind: Service
 metadata:
   name: lora-inference-service
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: lora-inference
   ports:
     - protocol: TCP
-      port: 8000
-      targetPort: 8000
-      nodePort: 30080
-
+      port: 8000 # port of the services
+      targetPort: 8000 # Port of the container
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

@@ -77,4 +77,4 @@ jobs:
 
       - name: Verify rollout
         run: |
-          kubectl rollout status deployment/llm-lora
+          kubectl rollout status deployment/lora-inference  
