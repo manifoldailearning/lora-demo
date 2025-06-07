@@ -88,7 +88,7 @@ class LoRATrainer:
 
         # save the model
         logger.info(f"Saving the model to {self.output_dir}")
-        trainer.save_model(os.path.join(self.output_dir, "final_model"))
+        trainer.save_model(os.path.join(self.output_dir))
 
         if wandb.run is not None:
             logger.info("Saving model to wandb")

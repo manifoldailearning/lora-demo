@@ -3,7 +3,7 @@ from typing import List, Optional
 
 @dataclass
 class LoRAConfig:
-    model_name: str = "facebook/opt-350m"
+    model_name: str = "facebook/opt-350m" # gemini
     max_length: int = 512
     batch_size: int = 8
     output_dir: str = "output/final_model"
