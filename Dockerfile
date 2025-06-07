@@ -27,4 +27,4 @@ ENV BASE_MODEL_PATH=facebook/opt-350m
 ENV ADAPTER_MODEL_PATH=/app/output/final_model
 
 EXPOSE 8000
-CMD ["python", "app.py"]
+CMD ["python", "./src/api/app.py"]
