@@ -73,6 +73,10 @@ def generate_text(request: GenerationRequest):
     logger.info("Text generation completed.")
     return GenerationResponse(generated_text=generated_text)
 
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "model_loaded": model is not None}
+
 if __name__ == "__main__":
     port = int(os.getenv("API_PORT", 8000))
     logger.info(f"Starting FastAPI server on port {port}")

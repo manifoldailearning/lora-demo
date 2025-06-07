@@ -1,0 +1,81 @@
+name: Build and Deploy to EKS
+
+on:
+  push:
+    branches: [main]
+
+env:
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set IMAGE_URI
+        run: echo "IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}" >> $GITHUB_ENV
+
+      - name: Build Docker image
+        run: docker build -t $IMAGE_URI .
+
+      - name: Push Docker image to ECR
+        run: docker push $IMAGE_URI
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.29.0'
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --region ${{ secrets.EKS_CLUSTER_REGION }} --name ${{ secrets.EKS_CLUSTER_NAME }}
+
+      - name: Recreate .env from GitHub Secret
+        run: echo "${{ secrets.ENV_FILE }}" > .env
+
+      - name: Create/Update ConfigMap from .env
+        run: |
+          kubectl create configmap lora-config --from-env-file=.env --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Update deployment with ECR image
+        run: |
+          sed -i "s|manifoldailearning/llm-lora:latest|$IMAGE_URI|g" kube-deployment.yaml
+
+      - name: Apply deployment
+        run: |
+          kubectl apply -f kube-deployment.yaml
+
+      # - name: Apply PVC (if needed)
+      #   run: |
+      #     kubectl apply -f outputs-pvc.yaml
+
+      - name: Verify rollout
+        run: |
+          kubectl rollout status deployment/llm-lora
